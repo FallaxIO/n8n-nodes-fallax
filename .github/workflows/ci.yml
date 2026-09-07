@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # n8n's own rules, which are what the Creator Portal review runs. A node
+      # that fails these is a node that fails verification, so it fails here
+      # first.
+      - run: pnpm lint
+
+      - run: pnpm typecheck
+
+      - run: pnpm test

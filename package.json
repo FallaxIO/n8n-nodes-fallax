@@ -1,0 +1,62 @@
+{
+  "name": "n8n-nodes-fallax",
+  "version": "0.1.0",
+  "description": "n8n node for Fallax: trigger workflows on reported phishing, clicks and credential submits, and keep the directory in step with your HR system.",
+  "keywords": [
+    "n8n-community-node-package",
+    "n8n",
+    "fallax",
+    "phishing",
+    "phishing-simulation",
+    "security-awareness"
+  ],
+  "license": "MIT",
+  "homepage": "https://fallax.io/integrations/n8n",
+  "author": {
+    "name": "Fallax",
+    "url": "https://fallax.io"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FallaxIO/n8n-nodes-fallax.git"
+  },
+  "bugs": "https://github.com/FallaxIO/n8n-nodes-fallax/issues",
+  "engines": {
+    "node": ">=20.15"
+  },
+  "scripts": {
+    "build": "rimraf dist .tsbuildinfo && tsc && node scripts/copy-icons.mjs",
+    "dev": "tsc --watch",
+    "format": "prettier nodes credentials --write",
+    "lint": "eslint nodes credentials package.json",
+    "lintfix": "eslint nodes credentials package.json --fix",
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm build && node --test \"test/**/*.test.js\"",
+    "prepublishOnly": "pnpm build && pnpm lint"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/FallaxApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/Fallax/Fallax.node.js",
+      "dist/nodes/Fallax/FallaxTrigger.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@typescript-eslint/parser": "^8.32.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-n8n-nodes-base": "^1.16.3",
+    "n8n-workflow": "*",
+    "prettier": "^3.5.3",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
+}
