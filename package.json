@@ -32,7 +32,8 @@
     "lintfix": "eslint nodes credentials package.json --fix",
     "typecheck": "tsc --noEmit",
     "test": "pnpm build && node --test \"test/**/*.test.js\"",
-    "prepublishOnly": "pnpm build && pnpm lint"
+    "check": "pnpm lint && pnpm typecheck && pnpm test",
+    "release": "pnpm build && changeset publish"
   },
   "files": [
     "dist"
@@ -48,6 +49,8 @@
     ]
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^1.0.0",
+    "@changesets/cli": "^3.0.1",
     "@typescript-eslint/parser": "^8.32.0",
     "eslint": "^8.57.0",
     "eslint-plugin-n8n-nodes-base": "^1.16.3",
@@ -58,5 +61,6 @@
   },
   "peerDependencies": {
     "n8n-workflow": "*"
-  }
+  },
+  "packageManager": "pnpm@10.15.0"
 }

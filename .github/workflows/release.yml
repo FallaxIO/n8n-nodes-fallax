@@ -1,0 +1,42 @@
+name: Release
+
+# Versioning and publishing are Changesets': a merge to main either opens the
+# "version packages" pull request or, if one has just landed, publishes what it
+# versioned. Nothing is released from a laptop, and that is not only hygiene
+# here — verification through the n8n Creator Portal requires a provenance
+# statement, and npm only issues one for a publish that happens inside a
+# workflow holding `id-token: write`.
+#
+# There is no NPM_TOKEN. The package is published through npm trusted
+# publishing, which trades the long-lived token for a short-lived OIDC one
+# minted per run, and which npm will only honour for the repository and
+# workflow filename registered against the package. So renaming this file
+# breaks publishing until npmjs.com is told the new name.
+
+on:
+  push:
+    branches: [main]
+
+concurrency: release
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: changesets/action@v2.1.1
+        with:
+          publish-script: pnpm release
+          pr-title: "release: version packages"
+          commit-message: "release: version packages"

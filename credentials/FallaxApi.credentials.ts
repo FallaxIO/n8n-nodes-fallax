@@ -11,7 +11,12 @@ import type {
  * The base URL is a field rather than a constant because Fallax is also run on
  * a customer's own domain in a couple of deployments, and a node that hard-codes
  * the SaaS host is a node those customers cannot use at all. It defaults to the
- * hosted product, so nobody else has to think about it.
+ * hosted API, so nobody else has to think about it.
+ *
+ * It holds the origin only, not the version: `/v1` is appended by the node (see
+ * GenericFunctions.ts). A field that swallowed the whole base URL would let
+ * somebody pin a version this node does not speak, and the resulting 404s would
+ * look like a Fallax outage rather than a typo.
  *
  * `test` points at the cheapest authenticated endpoint there is. It answers
  * with the workspace's name, which is what makes a wrong-but-valid key (the
@@ -40,9 +45,10 @@ export class FallaxApi implements ICredentialType {
 			displayName: 'Base URL',
 			name: 'baseUrl',
 			type: 'string',
-			default: 'https://app.fallax.io',
+			default: 'https://api.fallax.io',
 			required: true,
-			description: 'Change this only if Fallax runs on your own domain',
+			description:
+				'The API origin, without a version. Change this only if Fallax runs on your own domain',
 		},
 	];
 
@@ -58,7 +64,7 @@ export class FallaxApi implements ICredentialType {
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL: '={{$credentials.baseUrl.replace(/\\/$/, "")}}',
-			url: '/api/v1/me',
+			url: '/v1/me',
 		},
 	};
 }

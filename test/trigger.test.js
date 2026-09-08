@@ -24,7 +24,7 @@ function fakeContext({ mode = 'trigger', event = 'report', verdict = 'any', page
 		getNode: () => ({ name: 'Fallax Trigger' }),
 		getWorkflowStaticData: () => staticData,
 		getNodeParameter: (name) => (name === 'event' ? event : verdict),
-		getCredentials: async () => ({ apiKey: 'flx_test', baseUrl: 'https://app.fallax.io' }),
+		getCredentials: async () => ({ apiKey: 'flx_test', baseUrl: 'https://api.fallax.io' }),
 		helpers: {
 			returnJsonArray: (rows) => rows.map((json) => ({ json })),
 			httpRequestWithAuthentication: async (_credential, options) => {
@@ -35,7 +35,11 @@ function fakeContext({ mode = 'trigger', event = 'report', verdict = 'any', page
 	};
 }
 
-const page = (rows) => ({ data: rows, nextCursor: null, hasMore: false });
+const page = (rows, nextCursor = null) => ({
+	data: rows,
+	nextCursor,
+	hasMore: nextCursor !== null,
+});
 
 describe('FallaxTrigger', () => {
 	it('emits nothing on the first poll, and remembers where it started', async () => {
@@ -50,14 +54,45 @@ describe('FallaxTrigger', () => {
 		assert.ok(ctx.staticData.lastSeen, 'the watermark starts at activation time');
 	});
 
-	it('emits new rows oldest first', async () => {
+	it('asks for oldest first, and emits in that order', async () => {
 		const ctx = fakeContext({
 			staticData: { lastSeen: '2026-09-01T10:00:00.000Z' },
 			pages: [
 				page([
-					{ id: 'newer', reportedAt: '2026-09-01T12:00:00.000Z' },
 					{ id: 'older', reportedAt: '2026-09-01T11:00:00.000Z' },
+					{ id: 'newer', reportedAt: '2026-09-01T12:00:00.000Z' },
 				]),
+			],
+		});
+
+		const [items] = await FallaxTrigger.prototype.poll.call(ctx);
+
+		assert.equal(
+			ctx.calls[0].qs.order,
+			'asc',
+			'the direction is what makes the per-poll cap safe: with newest first, a backlog bigger than the cap would be stranded behind the watermark',
+		);
+		assert.deepEqual(
+			items.map((item) => item.json.id),
+			['older', 'newer'],
+			'a workflow should see events in the order they happened',
+		);
+	});
+
+	it('leaves a backlog bigger than one poll for the next poll, in order', async () => {
+		// Two pages of the same poll, then a watermark that lands on the newest
+		// row actually emitted rather than past it.
+		const ctx = fakeContext({
+			staticData: { lastSeen: '2026-09-01T10:00:00.000Z' },
+			pages: [
+				page(
+					[
+						{ id: 'a', reportedAt: '2026-09-01T11:00:00.000Z' },
+						{ id: 'b', reportedAt: '2026-09-01T11:30:00.000Z' },
+					],
+					'cursor-1',
+				),
+				page([{ id: 'c', reportedAt: '2026-09-01T12:00:00.000Z' }]),
 			],
 		});
 
@@ -65,9 +100,10 @@ describe('FallaxTrigger', () => {
 
 		assert.deepEqual(
 			items.map((item) => item.json.id),
-			['older', 'newer'],
-			'a workflow should see events in the order they happened',
+			['a', 'b', 'c'],
 		);
+		assert.equal(ctx.staticData.lastSeen, '2026-09-01T12:00:00.000Z');
+		assert.equal(ctx.calls[1].qs.cursor, 'cursor-1');
 	});
 
 	it('advances the watermark to the newest row seen, not to the clock', async () => {
@@ -115,7 +151,7 @@ describe('FallaxTrigger', () => {
 
 		await FallaxTrigger.prototype.poll.call(ctx);
 
-		assert.match(ctx.calls[0].url, /\/api\/v1\/events$/);
+		assert.match(ctx.calls[0].url, /^https:\/\/api\.fallax\.io\/v1\/events$/);
 		assert.equal(ctx.calls[0].qs.type, 'clicked');
 		assert.equal(ctx.staticData.lastSeen, '2026-09-01T12:00:00.000Z');
 	});

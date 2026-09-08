@@ -1,62 +1,38 @@
 # n8n-nodes-fallax
 
-Community node for [Fallax](https://fallax.io), the phishing-simulation and security-awareness platform.
+[![npm](https://img.shields.io/npm/v/n8n-nodes-fallax?color=%23FF6D5A&label=npm)](https://www.npmjs.com/package/n8n-nodes-fallax)
+[![license](https://img.shields.io/npm/l/n8n-nodes-fallax?color=%23FF6D5A)](./LICENSE)
 
-Start a workflow the moment somebody reports a suspicious message or clicks a lure, read your programme's results, and keep the directory in step with whatever system your joiners and leavers live in.
-
-[n8n](https://n8n.io) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
-
-- [Installation](#installation)
-- [Credentials](#credentials)
-- [Nodes](#nodes)
-- [Example workflows](#example-workflows)
-- [Compatibility](#compatibility)
-- [Resources](#resources)
+Start a workflow the moment somebody reports a phish or clicks a lure, and keep your [Fallax](https://fallax.io) directory in step with your HR system.
 
 ## Installation
 
-Follow n8n's [community nodes guide](https://docs.n8n.io/integrations/community-nodes/installation/), or:
+**n8n Cloud**: search the nodes panel for **Fallax**.
 
-1. In n8n, go to **Settings → Community nodes → Install**.
-2. Enter `n8n-nodes-fallax`.
-3. Agree to the risks of using community nodes and select **Install**.
-
-On n8n Cloud, search the nodes panel for **Fallax** instead: verified community nodes are already available there.
+**Self-hosted**: **Settings → Community nodes → Install**, then enter `n8n-nodes-fallax`.
 
 ## Credentials
 
-You need a Fallax workspace API key.
+1. In Fallax: **Settings → Integrations → n8n**, create a key.
+2. Paste it into the **Fallax API** credential. Saving it checks the key and names the workspace it opens.
 
-1. In Fallax, open **Settings → Integrations → n8n**.
-2. Create a key. Leave it read-only unless a workflow has to change your directory.
-3. Copy it into the **Fallax API** credential in n8n. Selecting **Save** checks the key and shows which workspace it opens.
+Keys belong to the workspace, not to you, so they survive your leaving. Shown once, stored as a hash. Read-only unless you grant write access, and no key of either scope can send a simulation.
 
-A key belongs to the workspace rather than to the person who created it, so it keeps working after they leave. It is shown once and stored as a hash, so it can be replaced but never recovered. No key of either scope can create or send a simulation.
-
-| Scope | What it can do |
-| --- | --- |
-| Read | Reported mail, the event log, campaigns, the programme summary, the directory |
-| Write | The same, plus adding, correcting and archiving people |
-
-## Nodes
+## Operations
 
 ### Fallax Trigger
 
-Polls for new activity and starts the workflow with it. Events:
-
 | Event | Fires when |
 | --- | --- |
-| Message Reported | Somebody forwards a suspicious message to the report mailbox, files it with the Fallax button in Gmail, or Google's Alert Center records their report. Filterable by verdict: matched a simulation, or matched nothing Fallax sent and may therefore be real. |
-| Simulation Clicked | Somebody clicks the link in a simulation |
-| Credentials Submitted | Somebody types credentials into a simulated login page |
+| Message Reported | Somebody reports a suspicious message, by mailbox, the Gmail button or Google's Alert Center. Filter by verdict: matched a simulation, or matched nothing Fallax sent and may be real. |
+| Simulation Clicked | Somebody clicks a lure |
+| Credentials Submitted | Somebody submits credentials to a simulated login page |
 | Simulation Opened | Somebody opens a simulation |
-| Any Simulation Event | Every interaction, including sends and gateway scans |
+| Any Simulation Event | All of those, plus sends and gateway scans |
 
-The trigger keeps a watermark of the newest row it has handled and asks for everything after it, exclusively. An event is emitted once, in the order it happened, even when a poll is retried or two events share a millisecond. Activating a workflow starts from that moment rather than replaying history.
+Polls oldest first from a watermark, so an event arrives exactly once and in the order it happened. Activating starts from that moment rather than replaying your history.
 
 ### Fallax
-
-Reads and writes inside a workflow.
 
 | Resource | Operations |
 | --- | --- |
@@ -66,27 +42,24 @@ Reads and writes inside a workflow.
 | Person | Get, Get Many, Create or Update, Update, Archive |
 | Summary | Get |
 
-**Create or Update** matches on email address, so an onboarding workflow that retries or re-runs will not create duplicates. **Archive** takes somebody out of the programme while keeping their evidence trail, which is what an offboarding workflow wants: fields owned by a Google or Microsoft directory sync stay owned by it, and a write that would collide with one is refused rather than quietly undone at the next sync.
+**Create or Update** matches on email address, so a retried onboarding run never duplicates anybody. **Archive** takes a leaver out of the programme, keeps their evidence trail, and frees the seat.
 
-## Example workflows
+## Usage
 
-**Route real phishing to the security team.** Fallax Trigger on *Message Reported*, verdict *Unknown Only* → create a ticket. These are messages staff thought were suspicious that Fallax did not send, so they are the ones worth a human.
-
-**Follow up a credential submit within the hour.** Fallax Trigger on *Credentials Submitted* → send the person a message, and notify their manager from your HR system.
-
-**Keep the directory current.** Your HR system's trigger → Fallax, *Person: Create or Update* for a joiner, *Person: Archive* for a leaver. No CSV, no drift, and leavers stop counting as seats.
-
-**Report on the quarter.** Schedule → Fallax, *Summary: Get* with range *Last 90 Days* → post the rates and their movement to a channel or a spreadsheet.
+- **Triage real phishing.** Trigger on *Message Reported*, verdict *Unknown Only*, then open a ticket. Those are the messages staff flagged that Fallax did not send.
+- **Chase a credential submit.** Trigger on *Credentials Submitted*, then message the person and their manager.
+- **Sync joiners and leavers.** Your HR trigger, then *Person: Create or Update* or *Person: Archive*.
+- **Report on the quarter.** Schedule, then *Summary: Get*, then post the rates to a channel.
 
 ## Compatibility
 
-Tested against n8n 1.x on Node.js 20 and later, on n8n Cloud and self-hosted. The node polls over HTTPS, so a self-hosted n8n needs no public URL and nothing has to be opened up on your side.
+n8n 1.x on Node.js 20 and later, Cloud and self-hosted. The node polls over HTTPS, so a self-hosted instance needs no public URL.
+
+Three limits worth knowing, none of which drop data: 500 rows per poll, 120 requests a minute per key, and fields owned by a Google or Microsoft directory sync are refused rather than silently reverted at the next sync. IP addresses and user agents are never returned.
 
 ## Resources
 
-- [Fallax n8n integration](https://fallax.io/integrations/n8n)
-- [Fallax REST API documentation](https://fallax.io/docs/api)
-- [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
+[API docs](https://fallax.io/docs/api) · [API reference](https://api.fallax.io/v1/reference) · [Integration page](https://fallax.io/integrations/n8n) · [n8n community nodes](https://docs.n8n.io/integrations/community-nodes/installation/)
 
 ## License
 

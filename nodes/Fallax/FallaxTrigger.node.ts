@@ -32,6 +32,17 @@ const EVENT_TYPES: Record<Exclude<EventName, 'report' | 'anyEvent'>, string> = {
 	open: 'opened',
 };
 
+/**
+ * The most rows one poll will emit.
+ *
+ * A send of ten thousand messages produces ten thousand `sent` events within a
+ * minute or two, and handing all of them to a workflow in one execution is how
+ * an n8n instance runs out of memory. Because the poll reads oldest first, this
+ * is a pace rather than a ceiling: the remainder is the front of the next poll,
+ * in order, with nothing skipped.
+ */
+const MAX_PER_POLL = 500;
+
 export class FallaxTrigger implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Fallax Trigger',
@@ -150,20 +161,24 @@ export class FallaxTrigger implements INodeType {
 			return null;
 		}
 
+		// Oldest first, which is the whole reason the API takes a direction. The
+		// cap below has to fall somewhere, and with newest-first a send that
+		// produced more rows than the cap would hand back the newest of them and
+		// strand the rest behind the advancing watermark, permanently. Ascending
+		// makes the cap a pause instead of a loss: what does not fit is simply the
+		// front of the next poll.
 		qs.since = lastSeen;
-		const rows = await fallaxApiRequestAllItems.call(this, endpoint, qs, 500);
+		qs.order = 'asc';
+		const rows = await fallaxApiRequestAllItems.call(this, endpoint, qs, MAX_PER_POLL);
 		if (rows.length === 0) return null;
 
-		const newest = rows
-			.map((row) => String(row[timeField] ?? ''))
-			.filter(Boolean)
-			.toSorted()
-			.at(-1);
+		// The last row is the newest, so the watermark moves to exactly what was
+		// emitted and no further. Read off the row rather than from the clock: a
+		// row written while this poll was in flight must not be skipped by a
+		// watermark that ran ahead of it.
+		const newest = String(rows.at(-1)?.[timeField] ?? '');
 		if (newest) staticData.lastSeen = newest;
 
-		// The API answers newest first, which is right for a person reading a page
-		// and wrong for a workflow: events should arrive in the order they
-		// happened, so a "clicked then reported" pair is not processed backwards.
-		return [this.helpers.returnJsonArray(rows.toReversed())];
+		return [this.helpers.returnJsonArray(rows)];
 	}
 }

@@ -11,11 +11,11 @@ import { NodeApiError } from 'n8n-workflow';
  * The one place this package talks HTTP.
  *
  * Everything the Fallax API does that a node has to care about lives here: the
- * base URL off the credential, the error shape unwrapped into something an n8n
- * user can read, and cursor paging turned into a plain array. The nodes
- * themselves then contain no transport at all, which is what keeps the trigger
- * and the action node from drifting apart on details like how `since` is
- * spelled.
+ * origin off the credential with the API version appended to it, the error shape
+ * unwrapped into something an n8n user can read, and cursor paging turned into a
+ * plain array. The nodes themselves then contain no transport at all, which is
+ * what keeps the trigger and the action node from drifting apart on details like
+ * how `since` is spelled.
  */
 
 type Context = IExecuteFunctions | IPollFunctions | ILoadOptionsFunctions;
@@ -34,12 +34,12 @@ export async function fallaxApiRequest(
 	qs: IDataObject = {},
 ): Promise<IDataObject> {
 	const credentials = await this.getCredentials('fallaxApi');
-	const baseUrl = String(credentials.baseUrl ?? 'https://app.fallax.io').replace(/\/+$/, '');
+	const baseUrl = String(credentials.baseUrl ?? 'https://api.fallax.io').replace(/\/+$/, '');
 
 	try {
 		return (await this.helpers.httpRequestWithAuthentication.call(this, 'fallaxApi', {
 			method,
-			url: `${baseUrl}/api/v1${endpoint}`,
+			url: `${baseUrl}/v1${endpoint}`,
 			body: Object.keys(body).length > 0 ? body : undefined,
 			qs,
 			json: true,
