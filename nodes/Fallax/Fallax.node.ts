@@ -5,6 +5,7 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
+import { NodeApiError, NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 import { fallaxApiRequest, fallaxApiRequestAllItems } from './GenericFunctions';
 
 /**
@@ -31,8 +32,8 @@ export class Fallax implements INodeType {
 		defaults: {
 			name: 'Fallax',
 		},
-		inputs: ['main'],
-		outputs: ['main'],
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		usableAsTool: true,
 		credentials: [
 			{
@@ -503,7 +504,16 @@ export class Fallax implements INodeType {
 					});
 					continue;
 				}
-				throw error;
+
+				// An API failure is already a NodeApiError by the time it gets
+				// here, carrying the status and the message Fallax wrote (see
+				// GenericFunctions.ts); wrapping it again would bury both.
+				// Anything else reached this point from the logic below, and
+				// needs the item index attached, or the editor cannot say which
+				// input row it was that failed.
+				throw error instanceof NodeApiError
+					? error
+					: new NodeOperationError(this.getNode(), error as Error, { itemIndex: i });
 			}
 		}
 

@@ -28,6 +28,12 @@ export class FallaxApi implements ICredentialType {
 
 	displayName = 'Fallax API';
 
+	// The node's icon, reached across the tree rather than copied beside this
+	// file: n8n resolves a credential icon relative to the built credential,
+	// and `dist/` mirrors the source tree exactly (see tsdown.config.mts), so
+	// this one path is correct both here and in the published package.
+	icon = 'file:../nodes/Fallax/fallax.svg' as const;
+
 	documentationUrl = 'https://fallax.io/docs/api';
 
 	properties: INodeProperties[] = [

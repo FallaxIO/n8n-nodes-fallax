@@ -5,6 +5,7 @@ import type {
 	INodeTypeDescription,
 	IPollFunctions,
 } from 'n8n-workflow';
+import { NodeConnectionTypes } from 'n8n-workflow';
 import { fallaxApiRequestAllItems } from './GenericFunctions';
 
 /**
@@ -57,7 +58,7 @@ export class FallaxTrigger implements INodeType {
 		},
 		polling: true,
 		inputs: [],
-		outputs: ['main'],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
 				name: 'fallaxApi',
