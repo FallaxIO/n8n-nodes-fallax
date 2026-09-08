@@ -1,0 +1,33 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "warn"
+  },
+  "rules": {
+    "typescript/consistent-type-imports": "error",
+    "eqeqeq": "error",
+    "no-console": "error"
+  },
+  "ignorePatterns": ["dist"],
+  "overrides": [
+    {
+      // Two rules that are right in general and wrong for an n8n node.
+      "files": ["nodes/**", "credentials/**"],
+      "rules": {
+        // n8n hands a node's helpers their context as `this`, typed with a
+        // `this:` parameter and called with `.call(this, ...)`. Every shared
+        // function in GenericFunctions is written that way because that is the
+        // interface n8n-workflow exposes; there is no version of it that takes
+        // the context as an ordinary argument.
+        "no-this-in-exported-function": "off",
+
+        // The paging loops await on purpose. Each request needs the cursor the
+        // previous response returned, so there is nothing to run in parallel
+        // and `Promise.all` cannot express it.
+        "no-await-in-loop": "off"
+      }
+    }
+  ]
+}

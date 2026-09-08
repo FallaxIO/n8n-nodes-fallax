@@ -21,11 +21,16 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
-      # n8n's own rules, which are what the Creator Portal review runs. A node
-      # that fails these is a node that fails verification, so it fails here
-      # first.
+      # oxlint for the general rules, then n8n's own, which are what the
+      # Creator Portal review runs. A node that fails those is a node that
+      # fails verification, so it fails here first.
       - run: pnpm lint
 
+      - run: pnpm format --check
       - run: pnpm typecheck
+
+      # Builds first: the suite loads dist/ to check that what n8n is told to
+      # require is really there and really loads.
       - run: pnpm test
-      - run: pnpm build
+
+      - run: pnpm publint

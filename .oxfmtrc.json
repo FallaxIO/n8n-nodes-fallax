@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": true,
+  "trailingComma": "all",
+  "bracketSpacing": true,
+  "useTabs": true,
+  "tabWidth": 2,
+  "printWidth": 100,
+  "singleQuote": true,
+  "sortPackageJson": false,
+  "ignorePatterns": ["**/*.md", ".github/**", "dist"],
+  "overrides": [
+    {
+      "files": ["**/*.json", "**/*.jsonc"],
+      "options": { "useTabs": false, "tabWidth": 2 }
+    }
+  ]
+}

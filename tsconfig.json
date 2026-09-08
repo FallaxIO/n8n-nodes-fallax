@@ -1,25 +1,31 @@
 {
   "compilerOptions": {
+    "target": "es2023",
+    "lib": ["es2023"],
+
+    // tsdown owns the emit, so TypeScript is only ever a checker here. That is
+    // what lets the source be written in module syntax and still ship as the
+    // CommonJS n8n requires: `preserve` leaves the imports alone and the
+    // bundler decides the output format.
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "resolveJsonModule": true,
+    "noEmit": true,
+
     "strict": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "target": "es2022",
-    "lib": ["es2023", "dom"],
-    "outDir": "./dist",
-    "declaration": true,
-    "sourceMap": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": true,
+    "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "useUnknownInCatchVariables": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "forceConsistentCasingInFileNames": true,
+
     "skipLibCheck": true,
-    "preserveConstEnums": true,
-    "resolveJsonModule": true,
-    "incremental": true,
-    "tsBuildInfoFile": "./.tsbuildinfo"
+    "types": ["node"]
   },
-  "include": ["credentials/**/*", "nodes/**/*"],
-  "exclude": ["dist", "node_modules"]
+  "include": ["nodes", "credentials", "test", "*.config.mts"]
 }

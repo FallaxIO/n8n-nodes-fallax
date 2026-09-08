@@ -142,7 +142,8 @@ export class Fallax implements INodeType {
 					{
 						name: 'Create or Update',
 						value: 'upsert',
-						description: 'Create a new record, or update the current one if it already exists (upsert)',
+						description:
+							'Create a new record, or update the current one if it already exists (upsert)',
 						action: 'Create or update a person',
 					},
 					{
@@ -558,7 +559,9 @@ async function runOne(
 	if (resource === 'person' && operation === 'upsert') {
 		const email = this.getNodeParameter('email', i) as string;
 		const fields = this.getNodeParameter('fields', i, {}) as IDataObject;
-		return [await fallaxApiRequest.call(this, 'POST', '/people', { email, ...withoutEmpty(fields) })];
+		return [
+			await fallaxApiRequest.call(this, 'POST', '/people', { email, ...withoutEmpty(fields) }),
+		];
 	}
 
 	if (resource === 'person' && operation === 'update') {

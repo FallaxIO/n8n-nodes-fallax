@@ -74,11 +74,17 @@ export async function fallaxApiRequestAllItems(
 
 	do {
 		const perPage = Math.min(200, limit - items.length);
-		const response = (await fallaxApiRequest.call(this, 'GET', endpoint, {}, {
-			...qs,
-			limit: Number.isFinite(perPage) ? perPage : 200,
-			...(cursor ? { cursor } : {}),
-		})) as unknown as PagedResponse<IDataObject>;
+		const response = (await fallaxApiRequest.call(
+			this,
+			'GET',
+			endpoint,
+			{},
+			{
+				...qs,
+				limit: Number.isFinite(perPage) ? perPage : 200,
+				...(cursor ? { cursor } : {}),
+			},
+		)) as unknown as PagedResponse<IDataObject>;
 
 		items.push(...response.data);
 		cursor = response.nextCursor;
