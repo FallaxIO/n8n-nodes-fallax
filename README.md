@@ -1,9 +1,19 @@
-# n8n-nodes-fallax
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./.github/assets/banner-dark.svg">
+    <img alt="n8n-nodes-fallax: start a workflow the moment somebody reports a phish or clicks a lure, and keep your Fallax directory in step with your HR system." src="./.github/assets/banner-light.svg" width="860">
+  </picture>
+</p>
 
-[![npm](https://img.shields.io/npm/v/n8n-nodes-fallax?color=%23FF6D5A&label=npm)](https://www.npmjs.com/package/n8n-nodes-fallax)
-[![license](https://img.shields.io/npm/l/n8n-nodes-fallax?color=%23FF6D5A)](./LICENSE)
+<p align="center">
+  <a href="https://www.npmjs.com/package/n8n-nodes-fallax"><img alt="npm" src="https://img.shields.io/npm/v/n8n-nodes-fallax?color=%23FF6D5A&label=npm"></a>
+  <a href="./LICENSE"><img alt="license" src="https://img.shields.io/npm/l/n8n-nodes-fallax?color=%23FF6D5A"></a>
+</p>
 
-Start a workflow the moment somebody reports a phish or clicks a lure, and keep your [Fallax](https://fallax.io) directory in step with your HR system.
+<p align="center">
+  Start a workflow the moment somebody reports a phish or clicks a lure,<br>
+  and keep your <a href="https://fallax.io">Fallax</a> directory in step with your HR system.
+</p>
 
 ## Installation
 
