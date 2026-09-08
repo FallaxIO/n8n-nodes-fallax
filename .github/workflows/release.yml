@@ -35,6 +35,13 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+
+      # Trusted publishing is npm's own, not the action's: changesets/action
+      # runs `pnpm release` and nothing else, so the OIDC exchange happens
+      # inside `npm publish`. npm only learned it in 11.5.1, and the npm
+      # bundled with Node 22 is 10.x, which would fail with ENEEDAUTH.
+      - run: npm install -g npm@latest
+
       - uses: changesets/action@v2.1.1
         with:
           publish-script: pnpm release
