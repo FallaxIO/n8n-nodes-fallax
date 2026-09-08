@@ -11,7 +11,8 @@ one taught us.
 - `1.0.0` is **on npm with provenance**, published by `release.yml` through
   trusted publishing. `0.1.0` is the bootstrap version below it and has none.
 - The GitHub repository is `FallaxIO/n8n-nodes-fallax`, public.
-- Not yet submitted to the n8n Creator Portal.
+- `1.0.0` was **submitted to the Creator Portal and rejected**, with "Error
+  getting author email from npm". See below; `1.0.1` is the fix.
 
 ## One-time setup, already done
 
@@ -82,7 +83,7 @@ What they check, and what already satisfies it:
 | --- | --- |
 | MIT license | `LICENSE`, and `license` in `package.json` |
 | No runtime dependencies | `package.json` has none; `n8n-workflow` is a peer |
-| TypeScript, lint clean | `pnpm check` runs their own `eslint-plugin-n8n-nodes-base` |
+| TypeScript, lint clean | `pnpm check` runs the same two plugins the scanner does |
 | Published from Actions with provenance | `.github/workflows/release.yml` |
 | One service, trigger allowed alongside | `Fallax` and `Fallax Trigger` |
 | English throughout | interface, errors and README |
@@ -90,6 +91,43 @@ What they check, and what already satisfies it:
 
 Verification is what puts the node on `n8n.io/integrations` and in n8n Cloud's
 node panel. There is no fee, no user minimum and no beta period.
+
+## Run the scanner before submitting, not after
+
+The table above is the published checklist. The gate is a program, and it is
+public:
+
+```
+npx @n8n/scan-community-package n8n-nodes-fallax
+```
+
+It checks provenance, then lints twice — once over the published tarball and
+once over the source at the commit provenance attests to — and fails on any
+error. Warnings do not fail it.
+
+`1.0.0` was submitted without running it, on the strength of `pnpm check` being
+green, and came back rejected. The scan found seven errors. Only one of them,
+the missing `author.email`, was the one the portal reported; the rest would have
+surfaced one at a time on later attempts.
+
+`pnpm check` was green because it was running half the rules. The scanner layers
+**two** ESLint plugins:
+
+| Plugin | What it is |
+| --- | --- |
+| `eslint-plugin-n8n-nodes-base` | the long-standing one, and all this repo had |
+| `@n8n/eslint-plugin-community-nodes` | the newer one, and where every rule we failed lives |
+
+`eslint.config.mjs` is now a deliberate copy of the scanner's own config
+(`scanner/scanner.mjs`, `buildScanConfig`) — both plugins, the same four rule
+overrides, the same scope of `package.json` and `{nodes,credentials}/**`. If
+`pnpm lint` passes, the scan passes. Keep it that way: when the scanner's config
+moves, move this one with it rather than letting the two drift apart again.
+
+Note that the scanner reads the **published** package and the **pushed** commit,
+so it can only be run against a version that already exists. To check work in
+progress, call `analyzePackage` from `@n8n/scan-community-package` directly
+against the working tree.
 
 ## Still open
 

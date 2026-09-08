@@ -14,6 +14,7 @@
   "homepage": "https://fallax.io/integrations/n8n",
   "author": {
     "name": "Fallax",
+    "email": "hello@fallax.io",
     "url": "https://fallax.io"
   },
   "repository": {
@@ -43,6 +44,7 @@
   ],
   "n8n": {
     "n8nNodesApiVersion": 1,
+    "strict": true,
     "credentials": [
       "dist/credentials/FallaxApi.credentials.js"
     ],
@@ -54,6 +56,7 @@
   "devDependencies": {
     "@changesets/changelog-github": "^1.0.0",
     "@changesets/cli": "^3.0.1",
+    "@n8n/eslint-plugin-community-nodes": "^0.32.0",
     "@types/node": "^26.5.0",
     "@typescript-eslint/parser": "^8.70.0",
     "eslint": "^10.10.0",
