@@ -36,11 +36,23 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
-      # Trusted publishing is npm's own, not the action's: changesets/action
-      # runs `pnpm release` and nothing else, so the OIDC exchange happens
-      # inside `npm publish`. npm only learned it in 11.5.1, and the npm
-      # bundled with Node 22 is 10.x, which would fail with ENEEDAUTH.
-      - run: npm install -g npm@latest
+      # `changeset publish` shells out to `pnpm info` and `pnpm publish`, and
+      # pnpm in turn shells out to npm — it packs a tarball and hands it to
+      # `npm publish`, resolving npm from the Node install directory. So the
+      # npm here is what actually talks to the registry, and the version of it
+      # matters twice:
+      #
+      #   - below 11.5.1 there is no trusted publishing, so the OIDC exchange
+      #     never happens and the publish fails with ENEEDAUTH. Node 22 bundles
+      #     npm 10.
+      #   - from 12.0.0, `npm info --json` returns an array rather than an
+      #     object. Changesets' npm path handles both, but the pnpm path — the
+      #     one we are on — does not, and dies on `versions` being undefined.
+      #
+      # 11.x is the window where both are true. Hold it there deliberately; a
+      # bare `npm@latest` reintroduces the second failure.
+      - run: npm install -g npm@^11.5.1
+      - run: npm --version
 
       - uses: changesets/action@v2.1.1
         with:
