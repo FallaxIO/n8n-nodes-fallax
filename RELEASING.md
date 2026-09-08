@@ -1,52 +1,55 @@
 # Releasing and getting verified
 
-Not published to npm (`files` is `dist` only). This is the runbook for the
-first release and every one after it.
+The runbook for every release after the first, and the record of what the first
+one taught us.
 
 ## State, as of 2026-09-08
 
 - The Fallax API is **live in production**: `https://api.fallax.io/v1`, with the
   generated document at `/v1/openapi.json` and the reference at `/v1/reference`.
   Both already carry today's `order` parameter and the trimmed response fields.
-- This package is **committed but unpushed**, at `0.1.0`, with one pending
-  changeset that bumps it to `1.0.0`.
-- The GitHub repository **does not exist yet**.
-- Nothing is on npm yet.
+- `1.0.0` is **on npm with provenance**, published by `release.yml` through
+  trusted publishing. `0.1.0` is the bootstrap version below it and has none.
+- The GitHub repository is `FallaxIO/n8n-nodes-fallax`, public.
+- Not yet submitted to the n8n Creator Portal.
 
-## One-time setup
+## One-time setup, already done
 
-### 1. The repository
+Kept because it explains why things are shaped the way they are.
 
-Create `FallaxIO/n8n-nodes-fallax`, **public** (provenance means nothing on a
-private repo), and push `main`.
+The repository is public, because provenance means nothing on a private one.
+`0.1.0` was published by hand from a laptop, because npm will not accept a
+trusted publisher for a package that does not exist yet, and that publish
+needed `--provenance=false` to override the `provenance=true` in `.npmrc` —
+that setting is right for CI and impossible anywhere else. Then the trusted
+publisher was registered on npmjs.com: organization `FallaxIO`, repository
+`n8n-nodes-fallax`, workflow `release.yml`, no environment.
 
-### 2. Bootstrap the npm package
+Two of those are load-bearing. Renaming `release.yml` breaks publishing until
+npmjs.com is told the new name. Adding an `environment:` to the release job
+breaks it until the same field is filled in on npm, and leaving that field
+blank on npm while the job has one fails just as hard.
 
-npm will not let you configure a trusted publisher for a package that does not
-exist, so the first publish has to be manual. Publish the current `0.1.0` as
-the bootstrap version:
+## The npm version in the release job is load-bearing too
 
-```sh
-npm login
-pnpm build && npm publish --access public
-```
+`changeset publish` does not talk to the registry itself. Because this package
+declares `packageManager: pnpm`, changesets picks its pnpm publish tool, which
+runs `pnpm info` and `pnpm publish` — and pnpm shells out to **npm** for both,
+packing a tarball and handing it to `npm publish`. It resolves npm from the
+Node install directory, which is what `npm install -g npm@...` replaces.
 
-That version has no provenance, which is fine: it is not the one submitted for
-verification.
+So the npm in `release.yml` is the thing that actually publishes, and it is
+pinned to `11.x` from both directions:
 
-### 3. Turn on trusted publishing
+| npm | Trusted publishing | `npm info --json` |
+| --- | --- | --- |
+| 10.x, which Node 22 bundles | no, added in 11.5.1 | object |
+| **11.5.1 and up** | yes | object |
+| 12.x, which `@latest` now means | yes | **array** |
 
-On npmjs.com, package settings, add a trusted publisher:
-
-| Field | Value |
-| --- | --- |
-| Organization | `FallaxIO` |
-| Repository | `n8n-nodes-fallax` |
-| Workflow | `release.yml` |
-| Environment | leave blank |
-
-The workflow filename is load-bearing. Renaming `release.yml` breaks publishing
-until npm is told the new name.
+Changesets' npm code path handles both shapes. Its pnpm code path — ours — does
+not, and dies on `versions` being undefined. `11.x` is the only window where
+both hold, so `npm@latest` is not a safe simplification.
 
 ## Releasing
 
@@ -63,10 +66,11 @@ Never `npm version`, never publish from a laptop again. The version in
 
 ## Submitting for verification
 
-Once `1.0.0` is on npm with provenance:
+`1.0.0` is on npm with provenance, so:
 
-1. Check it landed: `npm view n8n-nodes-fallax dist.attestations` should print a
-   provenance predicate.
+1. Done: `dist.attestations` on `1.0.0` carries an
+   `https://slsa.dev/provenance/v1` predicate, and the published tarball's three
+   n8n entrypoints and icon were installed from the registry and loaded.
 2. Install it in a real n8n (self-hosted, Settings, Community nodes) and run one
    workflow end to end against a live Fallax key.
 3. Submit the package name at the
