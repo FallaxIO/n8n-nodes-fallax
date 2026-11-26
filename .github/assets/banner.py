@@ -122,11 +122,11 @@ LINE2 = "Keep your Fallax directory in step with your HR system."
 NODES = ["Message Reported", "verdict: unknown", "your workflow"]
 CAPTION = "oldest first · exactly once · no public URL"
 
-MARK = [  # the cleft F, on a 24 grid
-    "M4.2 2.8H20.4V7.4H8.8V9.6L4.2 12.2Z",
-    "M4.2 14.8 8.8 12.2V10.4H17.6V15H8.8V21.2H4.2Z",
+MARK = [  # the F and its slash, on a 24 grid; must equal Fallax's src/lib/mark.ts
+    "M1.25 21.71V2.29H14.89L13.23 6.01H5.75V10.67H11.15L9.57 14.23H5.75V21.71Z",
+    "M9.19 21.71H14.1L22.75 2.29H17.84Z",
 ]
-MARK_BOX = (4.2, 2.8, 16.2, 18.4)  # x, y, w, h of the drawn content
+MARK_BOX = (1.25, 2.29, 21.5, 19.42)  # x, y, w, h of the drawn content
 
 
 def txt(s, x, y, fill, family="sans", size=16, weight=400, tracking=0.0, anchor="start"):
