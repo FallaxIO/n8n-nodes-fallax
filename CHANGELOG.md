@@ -1,5 +1,11 @@
 # n8n-nodes-fallax
 
+## 1.0.2
+
+### Patch Changes
+
+- [#7](https://github.com/FallaxIO/n8n-nodes-fallax/pull/7) [`1601552`](https://github.com/FallaxIO/n8n-nodes-fallax/commit/16015525fc661cbfa72d1d481eda80471bd95bf1) Thanks [@IgnaceMaes](https://github.com/IgnaceMaes)! - The node icon is the new Fallax mark: the F and one slash.
+
 ## 1.0.1
 
 ### Patch Changes
